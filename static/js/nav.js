@@ -1,62 +1,43 @@
-// Detect device input type
-const isTouch = matchMedia("(pointer: coarse)").matches;
-document.body.dataset.input = isTouch ? "touch" : "mouse";
-
-// Elements
 const toggle = document.getElementById("nav-toggle");
 const menu = document.querySelector(".nav-menu");
+const isTouch = matchMedia("(pointer: coarse)").matches;
 
-// ----------------------------
-// CLICK / TAP PERSISTENT STATE
-// ----------------------------
-toggle.addEventListener("click", () => {
-    const isActive = toggle.classList.contains("active");
+document.body.dataset.input = isTouch ? "touch" : "mouse";
 
-    if (isActive) {
-        // Closing
-        toggle.classList.remove("active");
-        menu.classList.remove("open-active");
-        menu.classList.remove("open-hover");
-    } else {
-        // Opening persistent
+function updateIconState() {
+    if (menu.classList.contains("open-active") || menu.classList.contains("open-hover")) {
         toggle.classList.add("active");
-        menu.classList.add("open-active");
-        menu.classList.remove("open-hover");
+    } else {
+        toggle.classList.remove("active");
     }
-});
-
-
-// ----------------------------
-// DESKTOP HOVER PREVIEW
-// ----------------------------
-if (!isTouch) {
-    toggle.addEventListener("mouseenter", () => {
-        if (!toggle.classList.contains("active")) {
-            menu.classList.add("open-hover");
-        }
-    });
-
-    document.addEventListener("mousemove", (e) => {
-        const hoveringToggle = toggle.contains(e.target);
-        const hoveringMenu = menu.contains(e.target);
-
-        if (
-            !toggle.classList.contains("active") &&
-            !hoveringToggle &&
-            !hoveringMenu
-        ) {
-            menu.classList.remove("open-hover");
-        }
-    });
 }
 
-
-// ----------------------------
-// SUBMENU CLICK TO OPEN (TOUCH ONLY)
-// ----------------------------
-document.querySelectorAll(".submenu-toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
-        if (!isTouch) return;
-        btn.nextElementSibling.classList.toggle("open");
-    });
+// CLICK → lock open / close
+toggle.addEventListener("click", () => {
+    menu.classList.toggle("open-active");
+    updateIconState();
 });
+
+// HOVER BEHAVIOR (desktop)
+if (!isTouch) {
+
+    toggle.addEventListener("mouseenter", () => {
+        menu.classList.add("open-hover");
+        updateIconState();
+    });
+
+    menu.addEventListener("mouseenter", () => {
+        menu.classList.add("open-hover");
+        updateIconState();
+    });
+
+    function closeHoverIfOut() {
+        if (!toggle.matches(":hover") && !menu.matches(":hover") && !menu.classList.contains("open-active")) {
+            menu.classList.remove("open-hover");
+            updateIconState();
+        }
+    }
+
+    toggle.addEventListener("mouseleave", closeHoverIfOut);
+    menu.addEventListener("mouseleave", closeHoverIfOut);
+}

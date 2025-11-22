@@ -5,13 +5,9 @@
 /* Body font */
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;600&display=swap');
 
-/* Skitcut custom font */
-@font-face {
-    font-family: "Skitcut";
-    src: url("/static/fonts/skitcut.ttf") format("truetype");
-    font-style: normal;
-    font-weight: normal;
-}
+/* Menu + Headers — Futura style, geometric, uppercase */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&display=swap');
+
 
 /* Better rendering */
 * {
@@ -37,41 +33,32 @@
 ------------------------------------ */
 
 body {
-    margin: 0;
     background-color: var(--background);
-    background-image: url("https://www.transparenttextures.com/patterns/white-wall-3.png");
-    background-size: 350px;
-    background-blend-mode: soft-light;
     font-family: "Inconsolata", monospace;
     font-size: 13px;
     letter-spacing: 2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
+
+a {
+    text-decoration: none;
+}
+
 
 /* ------------------------------------
    TYPOGRAPHY RULES
 ------------------------------------ */
 
-h1, h2, h3, h4, h5, h6,
-.nav-menu a,
-.nav-menu button {
-    font-family: "Skitcut", sans-serif;
-    text-transform: lowercase;
-    letter-spacing: 2px;
-}
-
+/* Menu + Headings styling */
 .nav-menu a,
 .nav-menu button,
 h1, h2, h3, h4, h5, h6 {
+    font-family: "League Spartan", sans-serif;
+    text-transform: uppercase;
+    line-height: 0.5px;
     color: var(--accent);
-    background-image: url("https://www.transparenttextures.com/patterns/white-wall-3.png");
-    background-size: 200px;
-    background-blend-mode: soft-light;
-
-    /* smooth font rendering */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
-
 
 
 /* ------------------------------------
@@ -83,6 +70,16 @@ h1, h2, h3, h4, h5, h6 {
     top: 1rem;
     left: 1rem;
     z-index: 3000;
+}
+
+/* Expand hoverable area under toggle so menu doesn’t collapse */
+.hover-zone {
+    padding-right: 50px;
+    padding-bottom: 40px; /* invisible hover buffer */
+}
+
+.hover-zone:hover {
+    pointer-events: auto;
 }
 
 /* ------------------------------------
@@ -121,13 +118,9 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* hover rotation (desktop only) */
-body[data-input="mouse"] .nav-toggle:hover:not(.active) {
-    transform: rotate(405deg);
-}
-
-/* active (clicked) */
 .nav-toggle.active {
     transform: rotate(405deg);
+    transition: transform 0.45s ease;
 }
 
 /* ------------------------------------
@@ -144,10 +137,9 @@ body[data-input="mouse"] .nav-toggle:hover:not(.active) {
     padding: 2rem;
     height: 100vh;
 
-    /* blur glass */
-    backdrop-filter: blur(20px);
-    background: var(--blur-bg);
-    border-right: 1px solid var(--blur-border);
+    background: var(--background) !important;
+    backdrop-filter: none !important;
+    border-right: none;
 
     z-index: 2000;
     list-style: none;
@@ -170,7 +162,7 @@ body[data-input="mouse"] .nav-toggle:hover:not(.active) {
     border: none;
     cursor: pointer;
     list-style: none;
-    padding: 0;
+    padding: 0 25px 0 25px;
     margin: 0;
 }
 
