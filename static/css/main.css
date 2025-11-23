@@ -111,7 +111,6 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 3000;
 }
 
-/* hover buffer */
 .hover-zone { padding-right: 50px; padding-bottom: 40px; }
 
 
@@ -153,6 +152,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: rotate(405deg);
 }
 
+
 /* ------------------------------------
    NAV MENU PANEL
 ------------------------------------ */
@@ -180,10 +180,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
-    background: transparent; /* make expanded menu transparent */
-    /* optional: add subtle blur behind the nav
-       backdrop-filter: blur(6px);
-    */
+    background: transparent;
 }
 
 .nav-menu.closing {
@@ -214,7 +211,6 @@ dl, ol, ul {
     text-transform: uppercase;
 }
 
-/* submenu sizing */
 .nav-sub {
     font-size: 1.3rem;
 }
@@ -224,7 +220,6 @@ dl, ol, ul {
    FIXED CASCADE + STAGGER ANIMATION
 ------------------------------------ */
 
-/* base hidden */
 .nav-menu li button,
 .nav-menu li .nav-item,
 .nav-menu li .nav-sub {
@@ -233,7 +228,6 @@ dl, ol, ul {
     transition: opacity .4s ease, transform .4s ease;
 }
 
-/* revealed */
 .nav-menu.open-active li button,
 .nav-menu.open-active li .nav-item,
 .nav-menu.open-active li .nav-sub,
@@ -258,7 +252,7 @@ dl, ol, ul {
 
 
 /* ------------------------------------
-   SUBMENU (FADE + COLLAPSE)
+   SUBMENU
 ------------------------------------ */
 
 .submenu {
@@ -271,14 +265,13 @@ dl, ol, ul {
     transition: opacity .3s ease, height .3s ease;
 }
 
-/* CLICK */
 .submenu.open {
     opacity: 1;
     pointer-events: auto;
     height: auto;
 }
 
-/* DESKTOP HOVER */
+/* Hover expand */
 @media (hover: hover) and (pointer: fine) {
     .has-sub:hover .submenu {
         opacity: 1;
@@ -293,33 +286,26 @@ dl, ol, ul {
     padding: 0;
 }
 
-/* ------------------------------------
-   SUBMENU ITEM FADE + STAGGER
------------------------------------- */
-
-/* base hidden state */
+/* Submenu item fade */
 .submenu li {
     opacity: 0;
     transform: translateY(10px);
     transition: opacity .35s ease, transform .35s ease;
 }
 
-/* when submenu is visible */
 .submenu.open li,
 .has-sub:hover .submenu li {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* stagger timing */
 .submenu li:nth-child(1) { transition-delay: .1s; }
 .submenu li:nth-child(2) { transition-delay: .3s; }
 .submenu li:nth-child(3) { transition-delay: .5s; }
 
 
-
 /* ------------------------------------
-   BREATHING ANIMATION (ISOLATED)
+   BREATHING ANIMATION
 ------------------------------------ */
 
 .nav-menu.alive .nav-item,
@@ -337,175 +323,8 @@ dl, ol, ul {
 
 
 /* ------------------------------------
-   HERO CAROUSEL
------------------------------------- */
-
-.carousel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
-    background: transparent;
-}
-
-.carousel-track {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-/* Each slide stacks */
-.carousel-slide {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    animation: fade 18s infinite ease-in-out;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* timing */
-.carousel-slide:nth-child(1) { animation-delay: 0s; }
-.carousel-slide:nth-child(2) { animation-delay: 6s; }
-.carousel-slide:nth-child(3) { animation-delay: 12s; }
-
-
-/* ------------------------------------
-   TRIO STACK
------------------------------------- */
-
-.trio-slide {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.trio-group {
-    position: absolute;
-    top: 50%;
-    right: 250px;
-    transform: translateY(-50%);
-    width: 90vw;
-    max-width: 1600px;
-    aspect-ratio: 1 / 1;
-    pointer-events: none;
-}
-
-.trio {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    transform: translate(-50%, -50%) scale(0.75);
-    opacity: 0;
-}
-
-/* staggered intro */
-.trio-1 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 0.2s; }
-.trio-2 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 0.7s; }
-.trio-3 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 1.2s; }
-
-
-/* ------------------------------------
-   CAPTION
------------------------------------- */
-.caption {
-    position: fixed;
-    left: 2rem;
-    bottom: 2rem;
-    transform: none;
-    margin: 0;
-    z-index: 999;
-    pointer-events: auto;
-    color:#f960d0
-}
-
-
-
-
-    /* Space below the fixed nav (not arbitrary — real offset) */
-    .carousel {
-        width: 100vw;
-        height: auto;
-        justify-content: center;
-        align-items: flex-start;
-        margin-top: 30em;
-        overflow: visible;
-    }
-
-    /* Trio layout */
-    .trio-group {
-        top: auto;
-        right: auto;
-        transform: none;
-        width: 100vw;
-        max-width: 1600px;
-        margin: 0 auto;
-    }
-
-  
-
-
-/* ------------------------------------
    MEDIA QUERIES
 ------------------------------------ */
-@media (max-width: 400px) {
-    .carousel {margin-top: 15em !important;}
-}
-
-@media (min-width: 401px) and (max-width: 500px) {
-    .carousel {
-        margin-top: 18em !important;
-    }
-}
-
-@media (min-width: 501px) and (max-width: 600px) {
-    .carousel {
-        margin-top: 20em !important;
-    }
-}
-
-@media (min-width: 601px) and (max-width: 700px) {
-    .carousel {
-        margin-top: 22em !important;
-    }
-}
-
-@media (min-width: 701px) and (max-width: 900px) {
-    .carousel {
-        margin-top: 30em !important;
-    }
-}
-
-@media (min-width: 901px) and (max-width: 1200px) {
-    .carousel {
-        margin-top: 35em !important;
-    }
-}
-
-@media (min-width: 1201px) and (max-width: 1600px) {
-    .carousel {
-        margin-top: 40em !important;
-    }
-}
-
-@media (min-width: 1601px) and (max-width: 5000px) {
-    .carousel {
-        margin-top: 45em !important;
-    }
-}
 
 @media (min-width: 1024px) {
     .nav-menu { width: 33vw; }
@@ -513,8 +332,4 @@ dl, ol, ul {
 
 @media (min-width: 1600px) {
     .nav-menu { width: 16.6vw; }
-
 }
-
-
-

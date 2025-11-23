@@ -1,37 +1,74 @@
 {% extends "base.html" %}
+{% load static %}
+
+
 
 {% block content %}
-<div class="container-fluid p-0">
-<section id="hero-carousel" class="carousel">
-    <div class="carousel-track">
 
-        <!-- SLIDE 1 — Three-PNG Animated Composition -->
-        <div class="carousel-slide trio-slide">
-            <div class="trio-group">
-                <img src="static/img/trio-1.png" class="trio trio-1" alt="Delinquency">
-                <img src="static/img/trio-2.png" class="trio trio-2" alt="Vanity">
-                <img src="static/img/trio-3.png" class="trio trio-3" alt="Transcendence">
-            </div>
+<!-- FULLSCREEN HERO CAROUSEL -->
+<section id="hero-carousel"
+    class="carousel slide carousel-fade"
+    data-bs-ride="carousel"
+    data-bs-interval="4000"
+    data-bs-pause="false"
+    data-bs-touch="false">
 
-            <p class="caption">
-                <strong>Delinquency, Vanity & Transcendence</strong> (Mixed Media, 2019)
-            </p>
-        </div>
 
-        <!-- SLIDE 2 -->
-        <div class="carousel-slide">
-            <img class="carousel-media" src="static/img/diptych.png" alt="Graphic posters diptych artwork">
-             <p class="caption">
-                <strong>Patterns</strong> (Graphic Posters, Diptych, 2025)
-            </p>
-        </div>
 
-        <!-- SLIDE 3 -->
-        <div class="carousel-slide">
-            <img class="carousel-media" src="static/img/placeholder-2.jpg" alt="Upcoming work">
+    <!-- Hidden controls (functional but not visible) -->
+    <button class="carousel-control-prev d-none" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev"></button>
+    <button class="carousel-control-next d-none" type="button" data-bs-target="#hero-carousel" data-bs-slide="next"></button>
+
+    <div class="carousel-inner">
+
+        <!-- ====================== SLIDE 1 — TRIO STACK ====================== -->
+       <div class="carousel-item active vh-100 position-relative">
+    <div class="container-fluid h-100 d-flex justify-content-center align-items-center">
+
+        <div class="hero-stack">
+            <img src="{% static 'img/trio-1.png' %}" class="hero-layer layer-1">
+            <img src="{% static 'img/trio-2.png' %}" class="hero-layer layer-2">
+            <img src="{% static 'img/trio-3.png' %}" class="hero-layer layer-3">
         </div>
 
     </div>
+
+    <div class="hero-caption">
+        Delinquency, Vanity & Transcendence (Mixed Media, 2019)
+    </div>
+</div>
+
+
+        <!-- ====================== SLIDE 2 — DIPTYCH ====================== -->
+       <div class="carousel-item vh-100 position-relative">
+    <div class="container-fluid h-100 d-flex justify-content-center align-items-center">
+        <div class="row justify-content-center align-items-center g-4 diptych-row">
+
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <img src="{% static 'img/phenomenon.png' %}" class="diptych-img img-fluid">
+            </div>
+
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <img src="{% static 'img/machine.png' %}" class="diptych-img img-fluid">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="hero-caption">
+        Patterns (Photography & Typography, 2025)
+    </div>
+</div>
+
+
+
+        <!-- ====================== SLIDE 3 — PLACEHOLDER ====================== -->
+        <div class="carousel-item vh-100 position-relative">
+            <div class="d-flex h-100 justify-content-center align-items-center">
+                <img src="{% static 'img/placeholder-2.jpg' %}" class="img-fluid hero-full" alt="Upcoming work">
+            </div>
+        </div>
+
     </div>
 </section>
 

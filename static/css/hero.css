@@ -1,0 +1,150 @@
+/* ------------------------------------
+   HERO CAROUSEL — GLOBAL
+------------------------------------ */
+
+#hero-carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Prevent horizontal sliding — fade only */
+.carousel-inner {
+    transform: none !important;
+}
+
+/* Default fade behavior (Bootstrap-compatible) */
+.carousel-fade .carousel-item {
+    opacity: 0;
+    transition: opacity 1.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.carousel-fade .carousel-item.active,
+.carousel-fade .carousel-item-next.carousel-item-start,
+.carousel-fade .carousel-item-prev.carousel-item-end {
+    opacity: 1;
+    position: relative;
+}
+
+/* Hide content from non-active slides (prevents ghosting) */
+.carousel-item:not(.active) .hero-layer,
+.carousel-item:not(.active) img,
+.carousel-item:not(.active) .diptych-img {
+    opacity: 0 !important;
+    animation: none !important;
+}
+
+/* Give space for captions under media */
+.carousel-item {
+    padding-bottom: 4rem;
+}
+
+
+
+/* ------------------------------------
+   CAPTIONS (ALL SLIDES)
+------------------------------------ */
+
+.hero-caption {
+    position: relative;
+    font-size: .9rem;
+    color: #ff59c7;
+    padding: 1rem 2rem;
+    text-align: left;
+    z-index: 10;
+}
+
+
+
+/* ------------------------------------
+   STACKED TRIO SLIDE
+------------------------------------ */
+
+.hero-stack {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 65%;
+    max-height: 99vh;
+    transform: translate(-50%, -50%) scale(0.9);
+    object-fit: contain;
+    opacity: 0;
+    z-index: 1;
+}
+
+/* IN: staggered entrance */
+.layer-1 { animation: layerFade 2s ease forwards .2s; z-index: 1; }
+.layer-2 { animation: layerFade 2s ease forwards .6s; z-index: 2; }
+.layer-3 { animation: layerFade 2s ease forwards 1s; z-index: 3; }
+
+/* OUT: fade all together, not staggered */
+.carousel-item:not(.active) .hero-layer {
+    animation: fadeOut 0.8s ease forwards !important;
+    animation-delay: 0s !important;
+}
+
+/* Trio entrance keyframes */
+@keyframes layerFade {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    60% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Trio exit keyframes */
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+
+
+/* ------------------------------------
+   DIPTYCH SLIDE
+------------------------------------ */
+
+.diptych-row {
+    margin: 0 auto;
+    max-width: 70vw; /* brings images toward center axis */
+}
+
+/* Base positioning */
+.diptych-img {
+    width: 90%;
+    object-fit: contain;
+    opacity: 0;
+    animation: diptychFade 1.2s ease forwards .4s;
+}
+
+/* Entrance animation (both fade together) */
+@keyframes diptychFade {
+    0% { opacity: 0; transform: scale(0.75); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+
+
+/* ------------------------------------
+   RESPONSIVE TWEAKS
+------------------------------------ */
+
+@media (max-width: 768px) {
+    .diptych-row {
+        max-width: 90vw;
+    }
+
+    .diptych-img {
+        width: 100%;
+    }
+}
