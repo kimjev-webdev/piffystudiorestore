@@ -1,6 +1,6 @@
 <nav id="navbar" class="nav hover-zone">
 
-    <!-- TOGGLE ICON -->
+    <!-- MENU TOGGLE -->
     <button id="nav-toggle" class="nav-toggle" aria-label="Toggle Menu">
         <div class="dot dot-1"></div>
         <div class="dot dot-2"></div>
@@ -11,20 +11,80 @@
 
     <!-- MENU -->
     <ul class="nav-menu">
-        <li><a href="/about/">About</a></li>
 
-        <li class="has-sub">
-            <button class="submenu-toggle">Work</button>
-            <ul class="submenu">
-                <li><a href="/work/installations/">Installations</a></li>
-                <li><a href="/work/digital/">Digital</a></li>
-                <li><a href="/work/art/">Art</a></li>
-            </ul>
+        <!-- ABOUT -->
+        <li>
+            <div class="nav-wrap">
+                <button class="nav-item" data-link="/about/">
+                    <span>About</span>
+                </button>
+            </div>
         </li>
 
-        <li><a href="/blog/">Blog</a></li>
-        <li><a href="/shop/">Shop</a></li>
-        <li><a href="/contact/">Contact</a></li>
+        <!-- WORK + SUBMENU -->
+        <li class="has-sub">
+
+            <div class="nav-wrap">
+                <button class="nav-item submenu-toggle">
+                    <span>Work</span>
+                </button>
+            </div>
+
+            <ul class="submenu">
+
+                <li>
+                    <div class="nav-wrap">
+                        <button class="nav-sub" data-link="/work/art/">
+                            <span>Art</span>
+                        </button>
+                    </div>
+                </li>
+
+                <li>
+                    <div class="nav-wrap">
+                        <button class="nav-sub" data-link="/work/digital/">
+                            <span>Digital</span>
+                        </button>
+                    </div>
+                </li>
+
+                <li>
+                    <div class="nav-wrap">
+                        <button class="nav-sub" data-link="/work/installations/">
+                            <span>Installations</span>
+                        </button>
+                    </div>
+                </li>
+
+            </ul>
+
+        </li>
+
+        <!-- OTHER TOP-LEVEL LINKS -->
+        <li>
+            <div class="nav-wrap">
+                <button class="nav-item" data-link="/blog/">
+                    <span>Blog</span>
+                </button>
+            </div>
+        </li>
+
+        <li>
+            <div class="nav-wrap">
+                <button class="nav-item" data-link="/shop/">
+                    <span>Shop</span>
+                </button>
+            </div>
+        </li>
+
+        <li>
+            <div class="nav-wrap">
+                <button class="nav-item" data-link="/contact/">
+                    <span>Contact</span>
+                </button>
+            </div>
+        </li>
+
     </ul>
 
 </nav>

@@ -9,11 +9,46 @@
 @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&display=swap');
 
 
-/* Better rendering */
+/* ------------------------------------
+   GLOBAL SMOOTHING
+------------------------------------ */
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+
+/* ------------------------------------
+   KEYFRAMES
+------------------------------------ */
+
+@keyframes fade {
+    0%   { opacity: 0; }
+    5%   { opacity: 1; }
+    30%  { opacity: 1; }
+    35%  { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+@keyframes trioIn {
+    0%   { opacity: 0; transform: translate(-50%, calc(-50% + 60px)) scale(0.6); }
+    60%  { opacity: 1; transform: translate(-50%, calc(-50% - 5px)) scale(1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes float {
+    0%   { transform: translate(-50%, -50%) scale(1); }
+    50%  { transform: translate(-50%, calc(-50% - 6px)) scale(1.01); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes breathe {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
 
 /* ------------------------------------
    THEME VARIABLES
@@ -22,14 +57,11 @@
 :root {
     --background: #def9d2;
     --accent: #f960d0;
-
-    /* blur nav panel */
-    --blur-bg: rgba(241,255,235,0.35);
-    --blur-border: rgba(241,255,235,0.4);
 }
 
+
 /* ------------------------------------
-   GLOBAL RESET
+   GLOBAL BASE
 ------------------------------------ */
 
 body {
@@ -37,20 +69,27 @@ body {
     font-family: "Inconsolata", monospace;
     font-size: 13px;
     letter-spacing: 2px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 a {
     text-decoration: none;
+    color: inherit;
+}
+
+.page-content {
+    padding: 0;
+    margin: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 
 /* ------------------------------------
-   TYPOGRAPHY RULES
+   TYPOGRAPHY
 ------------------------------------ */
 
-/* Menu + Headings styling */
 .nav-menu a,
 .nav-menu button,
 h1, h2, h3, h4, h5, h6 {
@@ -62,7 +101,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ------------------------------------
-   NAV CONTAINER
+   NAV WRAPPER
 ------------------------------------ */
 
 .nav {
@@ -72,18 +111,12 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 3000;
 }
 
-/* Expand hoverable area under toggle so menu doesn’t collapse */
-.hover-zone {
-    padding-right: 50px;
-    padding-bottom: 40px; /* invisible hover buffer */
-}
+/* hover buffer */
+.hover-zone { padding-right: 50px; padding-bottom: 40px; }
 
-.hover-zone:hover {
-    pointer-events: auto;
-}
 
 /* ------------------------------------
-   TOGGLE ICON (PLUS OF DOTS)
+   NAV TOGGLE BUTTON
 ------------------------------------ */
 
 .nav-toggle {
@@ -98,7 +131,7 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 3100;
 }
 
-/* perfect dot geometry */
+/* the dots */
 .dot {
     width: 8px;
     height: 8px;
@@ -110,49 +143,53 @@ h1, h2, h3, h4, h5, h6 {
     transform: translate(-50%, -50%);
 }
 
-/* positions */
+/* their positions */
 .dot-1 { top: 20%; }
 .dot-5 { top: 80%; }
 .dot-2 { left: 20%; }
 .dot-4 { left: 80%; }
 
-
-/* hover rotation (desktop only) */
 .nav-toggle.active {
     transform: rotate(405deg);
-    transition: transform 0.45s ease;
 }
 
 /* ------------------------------------
-   SIDEBAR MENU PANEL
+   NAV MENU PANEL
 ------------------------------------ */
 
 .nav-menu {
     position: fixed;
     top: 85px;
     left: 0;
-    display: none;
+    opacity: 0;
+    transform: translateY(-15px);
+    pointer-events: none;
+    display: flex;
+    transition: opacity .45s ease, transform .45s ease;
     flex-direction: column;
     gap: 1.6rem;
-    padding: 2rem;
     height: 100vh;
-
-    background: var(--background) !important;
-    backdrop-filter: none !important;
-    border-right: none;
-
+    width: 100vw;
+    background: var(--background);
     z-index: 2000;
     list-style: none;
 }
 
-/* open states */
-.nav-menu.open-hover,
-.nav-menu.open-active {
-    display: flex;
+.nav-menu.open-active,
+.nav-menu.open-hover {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
-.nav-menu li:first-child a {
-    padding-top: 1.2rem;
+.nav-menu.closing {
+    opacity: 0;
+    transform: translateY(-10px) scale(1.02);
+    pointer-events: none;
+}
+
+dl, ol, ul {
+   padding-left: 1rem !important;
 }
 
 
@@ -160,93 +197,293 @@ h1, h2, h3, h4, h5, h6 {
    MENU ITEM STYLING
 ------------------------------------ */
 
-.nav-menu a,
-.nav-menu button {
+.nav-item,
+.nav-sub {
     font-size: 2rem;
     background: none;
     border: none;
     cursor: pointer;
-    list-style: none;
-    padding: 0 25px 0 25px;
-    margin: 0;
+    width: 100%;
+    text-align: left;
+    color: var(--accent);
+    font-family: "League Spartan", sans-serif;
+    text-transform: uppercase;
 }
 
-/* remove bullets everywhere */
-.nav-menu,
-.nav-menu li,
-.submenu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+/* submenu sizing */
+.nav-sub {
+    font-size: 1.3rem;
 }
+
 
 /* ------------------------------------
-   CASCADE REVEAL
+   FIXED CASCADE + STAGGER ANIMATION
 ------------------------------------ */
 
-.nav-menu li {
+/* base hidden */
+.nav-menu li button,
+.nav-menu li .nav-item,
+.nav-menu li .nav-sub {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity .35s ease, transform .35s ease;
+    transition: opacity .4s ease, transform .4s ease;
 }
 
-.nav-menu.open-active li,
-.nav-menu.open-hover li {
+/* revealed */
+.nav-menu.open-active li button,
+.nav-menu.open-active li .nav-item,
+.nav-menu.open-active li .nav-sub,
+.nav-menu.open-hover li button,
+.nav-menu.open-hover li .nav-item,
+.nav-menu.open-hover li .nav-sub {
     opacity: 1;
     transform: translateY(0);
 }
 
-.nav-menu.open-active li:nth-child(1) { transition-delay: .1s; }
-.nav-menu.open-active li:nth-child(2) { transition-delay: .2s; }
-.nav-menu.open-active li:nth-child(3) { transition-delay: .3s; }
-.nav-menu.open-active li:nth-child(4) { transition-delay: .4s; }
-.nav-menu.open-active li:nth-child(5) { transition-delay: .5s; }
+/* stagger reveal */
+.nav-menu.open-active li:nth-child(1) button,
+.nav-menu.open-hover li:nth-child(1) button { transition-delay: .1s; }
+.nav-menu.open-active li:nth-child(2) button,
+.nav-menu.open-hover li:nth-child(2) button { transition-delay: .2s; }
+.nav-menu.open-active li:nth-child(3) button,
+.nav-menu.open-hover li:nth-child(3) button { transition-delay: .3s; }
+.nav-menu.open-active li:nth-child(4) button,
+.nav-menu.open-hover li:nth-child(4) button { transition-delay: .4s; }
+.nav-menu.open-active li:nth-child(5) button,
+.nav-menu.open-hover li:nth-child(5) button { transition-delay: .5s; }
+
 
 /* ------------------------------------
-   RESPONSIVE SIDEBAR WIDTHS
------------------------------------- */
-
-/* mobile + tablet fullscreen */
-.nav-menu {
-    width: 100vw;
-}
-
-/* desktop sidebar (1/3 width) */
-@media (min-width: 1024px) {
-    .nav-menu {
-        width: 33vw;
-    }
-}
-
-/* ultra-wide (1/6 width) */
-@media (min-width: 1600px) {
-    .nav-menu {
-        width: 16.6vw;
-    }
-}
-
-/* ------------------------------------
-   SUBMENU STYLING
+   SUBMENU (FADE + COLLAPSE)
 ------------------------------------ */
 
 .submenu {
-    margin-left: 0;
-    margin-top: .6rem;
-    display: none;
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
+    margin-top: 0.3rem;
+    padding-left: 0.5rem;
+    transition: opacity .3s ease, height .3s ease;
 }
 
+/* CLICK */
 .submenu.open {
-    display: block;
+    opacity: 1;
+    pointer-events: auto;
+    height: auto;
 }
 
-.submenu a {
-    font-size: 1.3rem;
-    opacity: 0.7;
-}
-
-/* Desktop hover opens submenu */
+/* DESKTOP HOVER */
 @media (hover: hover) and (pointer: fine) {
     .has-sub:hover .submenu {
-        display: block;
+        opacity: 1;
+        pointer-events: auto;
+        height: auto;
     }
 }
+
+.submenu li {
+    list-style: none;
+    margin: 0.4rem 0;
+    padding: 0;
+}
+
+/* ------------------------------------
+   SUBMENU ITEM FADE + STAGGER
+------------------------------------ */
+
+/* base hidden state */
+.submenu li {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+}
+
+/* when submenu is visible */
+.submenu.open li,
+.has-sub:hover .submenu li {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* stagger timing */
+.submenu li:nth-child(1) { transition-delay: .1s; }
+.submenu li:nth-child(2) { transition-delay: .3s; }
+.submenu li:nth-child(3) { transition-delay: .5s; }
+
+
+
+/* ------------------------------------
+   BREATHING ANIMATION (ISOLATED)
+------------------------------------ */
+
+.nav-menu.alive .nav-item,
+.nav-menu.alive .nav-sub {
+    animation: breathe 4s ease-in-out infinite;
+    opacity: 0.9;
+    transform-origin: center;
+}
+
+.nav-menu .nav-item:hover,
+.nav-menu .nav-sub:hover {
+    animation: breathe 1.4s ease-in-out infinite;
+    opacity: 1;
+}
+
+
+/* ------------------------------------
+   HERO CAROUSEL
+------------------------------------ */
+
+.carousel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    z-index: 1;
+    background: transparent;
+}
+
+.carousel-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Each slide stacks */
+.carousel-slide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    animation: fade 18s infinite ease-in-out;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* timing */
+.carousel-slide:nth-child(1) { animation-delay: 0s; }
+.carousel-slide:nth-child(2) { animation-delay: 6s; }
+.carousel-slide:nth-child(3) { animation-delay: 12s; }
+
+
+/* ------------------------------------
+   TRIO STACK
+------------------------------------ */
+
+.trio-slide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.trio-group {
+    position: absolute;
+    top: 50%;
+    right: 250px;
+    transform: translateY(-50%);
+    width: 90vw;
+    max-width: 1600px;
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+}
+
+.trio {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%) scale(0.75);
+    opacity: 0;
+}
+
+/* staggered intro */
+.trio-1 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 0.2s; }
+.trio-2 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 0.7s; }
+.trio-3 { animation: trioIn 1.4s ease-out forwards, float 6s ease-in-out infinite; animation-delay: 1.2s; }
+
+
+/* ------------------------------------
+   CAPTION
+------------------------------------ */
+.caption {
+    position: fixed;
+    left: 2.5rem;
+    bottom: 1.5rem;
+    color: var(--accent);
+    opacity: 0.85;
+    font-size: 0.9rem;
+    pointer-events: none;
+    text-align: left;
+    z-index: 4000;
+}
+
+
+/* ------------------------------------
+   MEDIA QUERIES
+------------------------------------ */
+
+@media (min-width: 1024px) {
+    .nav-menu { width: 33vw; }
+}
+
+@media (min-width: 1600px) {
+    .nav-menu { width: 16.6vw; }
+}
+
+
+
+    /* Place caption directly under the carousel / trio */
+    .caption {
+        position: relative;
+        bottom: 2.5rem;
+        right: 2.0rem;
+        transform: none;
+        margin: 16px auto 0;
+        text-align: center;
+        font-size: 0.9rem;
+        width: 100%;
+        max-width: 980px;
+        pointer-events: auto;
+    }
+
+
+@media (max-width: 1400px) {
+
+    /* Space below the fixed nav (not arbitrary — real offset) */
+    .carousel {
+        width: 100vw;
+        height: auto;
+        justify-content: center;
+        align-items: flex-start;
+        margin-top: 30em;
+        overflow: visible;
+    }
+
+    /* Trio layout */
+    .trio-group {
+        top: auto;
+        right: auto;
+        transform: none;
+        width: 100vw;
+        max-width: none;
+        margin: 0 auto;
+    }
+
+    .trio {
+        width: 100%;
+        transform: translate(-50%, -50%) scale(1.15);
+    }
+}
+
