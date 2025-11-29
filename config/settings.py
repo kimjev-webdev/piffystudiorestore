@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     # Your apps
     'pages',
     'portfolio',
-    'blog',
+    'interactions',
     'shop',
     'accounts',
 ]

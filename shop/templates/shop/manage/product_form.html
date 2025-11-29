@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ form.instance.pk|yesno:"Edit Product,Add Product" }}</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {{ image_form.as_p }}
+    <button type="submit">Save</button>
+</form>
+
+{% endblock %}
