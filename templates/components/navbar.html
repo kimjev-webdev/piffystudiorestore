@@ -1,87 +1,36 @@
-{% load static %}
-
-<nav id="navbar" class="nav hover-zone">
-
-    <!-- MENU TOGGLE -->
-    <button id="nav-toggle" class="nav-toggle" aria-label="Toggle Menu">
-        <div class="dot dot-1"></div>
-        <div class="dot dot-2"></div>
-        <div class="dot dot-3"></div>
-        <div class="dot dot-4"></div>
-        <div class="dot dot-5"></div>
+<nav id="navbar" class="navbar">
+    <button id="nav-toggle" aria-expanded="false" aria-controls="navbarNav" type="button" class="navbar-toggler">
+        <img src="/static/img/crossicon.png" alt="menu" class="nav-icon" />
     </button>
 
-    <!-- MENU -->
-    <ul class="nav-menu">
 
-        <!-- ABOUT -->
-        <li>
-            <div class="nav-wrap">
-                <button class="nav-item" data-link="{% url 'pages:about' %}">
-                    <span>About</span>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <button class="nav-link" data-link="{% url 'pages:about' %}">
+                    About
                 </button>
-            </div>
-        </li>
-
-        <!-- WORK + SUBMENU -->
-        <li class="has-sub">
-
-            <div class="nav-wrap">
-                <button class="nav-item submenu-toggle">
-                    <span>Work</span>
+            </li>
+            <li class="nav-item dropdown">
+                <button class="nav-link dropdown-toggle" type="button" id="workDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Work
                 </button>
-            </div>
-
-            <ul class="submenu">
-
-                <li>
-                    <div class="nav-wrap">
-                        <button class="nav-sub" data-link="{% url 'portfolio:art' %}">
-                            <span>Art</span>
-                        </button>
-                    </div>
-                </li>
-
-                <li>
-                    <div class="nav-wrap">
-                        <button class="nav-sub" data-link="{% url 'portfolio:digital' %}">
-                            <span>Digital</span>
-                        </button>
-                    </div>
-                </li>
-
-                <li>
-                    <div class="nav-wrap">
-                        <button class="nav-sub" data-link="{% url 'portfolio:installations' %}">
-                            <span>Installations</span>
-                        </button>
-                    </div>
-                </li>
-
-            </ul>
-
-        </li>
-
-        <!-- OTHER TOP-LEVEL LINKS -->
-
-        <li>
-            <div class="nav-wrap">
-                <button class="nav-item" data-link="{% url 'shop:shop_index' %}">
-                    <span>Shop</span>
+                <ul class="dropdown-menu" aria-labelledby="workDropdown">
+                    <li><button class="dropdown-item" data-link="{% url 'portfolio:art' %}">Art</button></li>
+                    <li><button class="dropdown-item" data-link="{% url 'portfolio:digital' %}">Digital</button></li>
+                    <li><button class="dropdown-item" data-link="{% url 'portfolio:installations' %}">Installations</button></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-link="{% url 'shop:shop_index' %}">
+                    Shop
                 </button>
-            </div>
-        </li>
-
-        <li>
-            <div class="nav-wrap">
-                <button class="nav-item" data-link="{% url 'pages:contact' %}">
-                    <span>Contact</span>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-link="{% url 'pages:contact' %}">
+                    Contact
                 </button>
-            </div>
-        </li>
-
-    </ul>
-
+            </li>
+        </ul>
+    </div>
 </nav>
-
- <script src="{% static 'js/nav.js' %}"></script>
