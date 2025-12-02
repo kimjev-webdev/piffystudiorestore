@@ -147,3 +147,71 @@ body {
     .navbar-nav > li:nth-child(3) > .nav-link { animation-delay: 0.16s !important; }
     .navbar-nav > li:nth-child(4) > .nav-link { animation-delay: 0.24s !important; }
 }
+
+/* Keep navbar items in a horizontal row on phones/tablets (<= 991.98px) */
+@media (max-width: 991.98px) {
+  /* Ensure the collapsed navbar is visible and laid out in a row on small screens */
+  #navbar .navbar-collapse.collapse {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  /* Keep the nav list horizontal and scrollable if needed */
+  #navbar .navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #navbar .navbar-nav .nav-item {
+    display: inline-flex;
+  }
+
+  /* Keep dropdown menus positioned above the flow (adjust if you want them inline) */
+  #navbar .navbar-nav .dropdown-menu {
+    position: absolute;
+    left: 0;
+  }
+}
+
+/* Normalize page edges and avoid 1px hairlines */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ensure consistent box model */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* remove stray borders/shadows on main layout containers */
+#navbar, .page-content, .container, header, main {
+    border: none !important;
+    box-shadow: none !important;
+    background-clip: padding-box;
+}
+
+/* hide accidental body scroll gutters on small overflows */
+body {
+    overscroll-behavior-y: none;
+}
+
+/* make images and inline elements not produce subpixel hairlines */
+img, svg, video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
