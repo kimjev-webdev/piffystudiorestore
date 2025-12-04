@@ -17,3 +17,5 @@ services:
 databases:
   - name: piffy-db
     plan: free
+    engine: postgresql
+    version: "14"

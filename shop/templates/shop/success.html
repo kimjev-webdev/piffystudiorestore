@@ -4,10 +4,14 @@
   <div class="thank-you">
     <h1>Thank you for your order!</h1>
     
-    <p>Your order has been successfully processed.</p>
+    <h2>Payment Successful</h2>
+
     <p><strong>Order Number:</strong> {{ order.id }}</p>
     
-    <h3>Order Details:</h3>
+<p>Your order has been received! You will receive an email confirmation shortly.</p>
+<a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
+
+ <h3>Order Details:</h3>
     <ul>
       {% for item in order.items.all %}
         <li>
@@ -19,8 +23,10 @@
     
     <p><strong>Total Amount:</strong> £{{ order.total_price }}</p>
 
-    <p>We will send you an email with the order details shortly. Thank you for shopping with us!</p>
 
-    <a href="{% url 'shop:home' %}">Back to Home</a>
+  <a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
+    
   </div>
 {% endblock %}
+
+
