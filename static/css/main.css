@@ -124,7 +124,7 @@ body {
 /* wobble / breathe animation for top-level nav links (subtle, 2D motion) */
 @media (hover: hover) and (pointer: fine) {
     /* apply wobble to all top-level nav links immediately (no .show dependency) */
-    .navbar-nav > li > .nav-link, .aboutlink {
+    .navbar-nav > li > .nav-link, .aboutlink, .product-description {
         animation-name: navWobble;
         animation-duration: 3.8s;
         animation-timing-function: ease-in-out;
@@ -145,7 +145,7 @@ body {
 }
 /* stronger wobble on touch / small-screen devices (pointer: coarse) */
 @media (hover: none), (pointer: coarse) {
-    .navbar-nav > li > .nav-link, .aboutlink {
+    .navbar-nav > li > .nav-link, .aboutlink, .product-description {
         animation-name: navWobbleTouch !important;
         animation-duration: 3.8s !important;
         animation-timing-function: ease-in-out !important;
@@ -319,3 +319,232 @@ img, svg, video {
 
 .abouttext
 { text-transform: justify;}
+
+
+    /* --- PRODUCT DETAILS PAGE --- */
+    .product-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;    
+        justify-content: center;
+        max-width: 1200px;
+        margin: auto;
+        padding: 4rem 2rem;
+    }
+
+    .product-title {
+        color: var(--charcoal);
+        font-family: Wakaba, sans-serif;
+        font-size: 2.8rem;
+        font-weight: 700;
+        text-transform: lowercase;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .product-price {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin: 0.5rem 0 2rem 0;
+    }
+
+    .product-description {
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: var(--charcoal);
+        margin-top: 2rem;
+        white-space: pre-line;
+    }
+
+    /* --- IMAGE LAYOUT --- */
+    .image-wrapper {
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .main-image {
+        width: 100%;
+        border-radius: 12px;
+        object-fit: contain;
+        max-height: 650px;
+    }
+
+    .thumbnail-row {
+        margin-top: 1.2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .thumbnail-row img {
+        width: 110px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+    }
+
+    .thumbnail-row img:hover {
+        opacity: 0.7;
+    }
+
+
+    /* --- BUY AREA --- */
+    .buy-box {
+        position: sticky;
+        top: 50px;
+        padding: 2rem;
+        border-radius: 14px;
+        background: #fafafa;
+        border: 1px solid #eaeaea;
+    }
+
+    .buy-btn {
+        font-family: wakaba, sans-serif;
+        background-color: transparent !important;
+        text-transform: lowercase;
+        border: none !important;
+        color: #ed71b2;
+        width: 100%;
+        padding: 0.9rem;
+        font-size: 2rem;
+    }
+
+    .buy-btn:hover, .buy-btn:focus {
+        color: #c4c600 !important;
+        text-transform: uppercase;
+    }
+    
+
+    .variant-select {
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 767px) {
+        .product-title { font-size: 2rem; }
+        .product-container { padding: 2rem 1rem; }
+        .buy-box { position: relative; top: 0; margin-top: 2rem; }
+    }
+
+/* Recommended: use the image as a mask so background-color tints only the icon
+   (works best when you replace the <img> with an element like:
+   <a class="cart-icon-nav ...">
+     <span class="cart-icon" role="img" aria-label="Cart"></span>
+     <span id="cart-count"...>...</span>
+   </a>
+*/
+.cart-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    background-color: var(--lilac);           /* initial tint */
+    -webkit-mask-image: url('../img/cart.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: url('../img/cart.png');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    transition: transform .18s ease, background-color .18s ease, opacity .18s ease;
+    vertical-align: middle;
+    pointer-events: none; /* keep clicks on parent link */
+}
+
+/* Hover / focus state: grow slightly and change tint to orange */
+.cart-icon-nav:focus .cart-icon,
+.cart-icon-nav:hover .cart-icon,
+.cart-icon:focus,
+.cart-icon:hover {
+    transform: scale(1.12);
+    background-color: var(--orange);
+    outline: none;
+}
+
+/* Fallback: if you keep using an <img class="cart-icon-img"> try a colorizing filter.
+   Filters are approximate; mask method is preferred for perfect tinting. */
+.cart-icon-img {
+    width: 24px;
+    height: auto;
+    display: inline-block;
+    transition: transform .18s ease, filter .18s ease;
+    /* approximate lilac tint */
+    filter: brightness(0) saturate(100%) sepia(20%) hue-rotate(200deg) saturate(400%) brightness(95%);
+    transform-origin: center center;
+}
+
+/* Hover / focus filter to approximate the orange color + scale */
+.cart-icon-img:hover,
+.cart-icon-img:focus {
+    transform: scale(1.12);
+    filter: brightness(0) saturate(100%) sepia(95%) hue-rotate(10deg) saturate(700%) brightness(105%);
+    outline: none;
+}
+
+/* hide <img> fallback when using mask element */
+.cart-icon-nav .cart-icon-img { display: none; }
+
+/* existing mask rules (ensure path is correct relative to this file) */
+.cart-icon {
+    margin-right: 20px;
+    padding-right: 10px;
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  background-color: var(--lilac);
+  -webkit-mask-image: url('../img/cart.png');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: url('../img/cart.png');
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  transition: transform .18s ease, background-color .18s ease, opacity .18s ease;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.cart-icon-nav:hover .cart-icon,
+.cart-icon-nav:focus .cart-icon {
+  transform: scale(2);
+  background-color: var(--orange);
+  outline: none;
+}
+
+/* On narrow screens put the cart icon on its own centered row */
+@media (max-width: 767.98px) {
+  /* make the collapse stack vertically and center contents */
+  #navbar .navbar-collapse.collapse {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+  }
+
+  /* center the nav links row */
+  #navbar .navbar-nav {
+    width: 100%;
+    justify-content: center;
+    gap: .5rem;
+    padding: 0.25rem 0;
+  }
+
+  /* ensure the cart sits on the next line and is centered */
+  .cart-icon-nav {
+    order: 2;
+    margin-top: .25rem;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    padding: .25rem 0;
+  }
+
+  /* neutralize any bootstrap auto-margin that pushed it to the side */
+  .cart-icon-nav.ms-auto { margin-left: 0 !important; }
+}
+

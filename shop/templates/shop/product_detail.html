@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="product-container">
+
+    <div class="row g-5">
+
+        <!-- LEFT SIDE — ARTWORK IMAGES -->
+        <div class="col-md-7">
+
+            <div class="image-wrapper">
+                {% if images %}
+                    <img id="main-img"
+                         src="{{ images.0.image.url }}"
+                         class="main-image shadow-sm">
+                {% else %}
+                    <img src="{% static 'img/placeholder.png' %}"
+                         class="main-image shadow-sm">
+                {% endif %}
+            </div>
+
+            {% if images|length > 1 %}
+                <div class="thumbnail-row">
+                    {% for img in images %}
+                        <img src="{{ img.image.url }}"
+                             onclick="document.getElementById('main-img').src='{{ img.image.url }}'">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+
+        <!-- RIGHT SIDE — BUY BOX -->
+        <div class="col-md-5">
+
+            <div class="buy-box shadow-sm">
+
+                <h1 class="product-title">{{ product.title }}</h1>
+
+                 <p class="product-description">{{ product.description|linebreaks }}</p>
+
+                {% if variants %}
+                    <label class="fw-semibold">Select Option</label>
+                    <select class="form-select variant-select" id="variantSelect">
+                        {% for v in variants %}
+                            <option value="{{ v.id }}">{{ v.name }} — £{{ v.final_price }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+
+                   {% if variants %}
+                        <input type="hidden" name="variant_id" id="variantInput">
+                    {% endif %}
+
+                <div class="product-price">£{{ product.price }}</div>
+
+                <form method="POST" action="{% url 'shop:add_to_cart' product.id %}">
+                    {% csrf_token %}
+
+                    <button class="btn btn-dark buy-btn">
+                        Add to Cart
+                    </button>
+                </form>
+
+               
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    // Keep variant dropdown synced to hidden input
+    const select = document.getElementById("variantSelect");
+    const hiddenInput = document.getElementById("variantInput");
+
+    if (select && hiddenInput) {
+        hiddenInput.value = select.value;
+        select.addEventListener("change", () => {
+            hiddenInput.value = select.value;
+        });
+    }
+</script>
+
+{% endblock %}

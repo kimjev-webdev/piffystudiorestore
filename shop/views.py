@@ -1,453 +1,347 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from accounts.decorators import staff_required
-from .models import Product, ProductImage, Category, ProductVariant
-from .forms import ProductForm, CategoryForm, MultiImageUploadForm, VariantForm
-from django.shortcuts import get_object_or_404, redirect
-from .models import Product, Cart, CartItem, Order
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-import json
-try:
-    import stripe
-except ImportError:
-    stripe = None
+
+from .models import Product, ProductImage, Category, ProductVariant, Cart, CartItem
+from .forms import ProductForm, CategoryForm, VariantForm
 
 
-# ============================
-# PUBLIC SHOP
-# ============================
+# ===========================================================
+# PUBLIC SHOP VIEWS
+# ===========================================================
+
 def product_list(request):
     products = Product.objects.all().order_by('-created_at')
-    categories = Category.objects.all()
-    return render(request, 'shop/product_list.html', {
-        'products': products,
-        'categories': categories
+    return render(request, "shop/product_list.html", {
+        "products": products,
     })
 
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    return render(request, 'shop/product_detail.html', {
-        'product': product
+    images = product.images.all()
+    variants = product.variants.all()
+
+    return render(request, "shop/product_detail.html", {
+        "product": product,
+        "images": images,
+        "variants": variants,
     })
 
-# ORDER SUCCESS PAGE
-def success(request):
-    return render(request, 'shop/success.html')  # Adjust the template path if necessary
 
-# CANCEL PAGE
+@login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    variant_id = request.POST.get("variant_id")
+    variant = None
+    if variant_id:
+        variant = ProductVariant.objects.filter(id=variant_id).first()
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=1
+    )
+
+    messages.success(request, f"{product.title} added to cart.")
+    return redirect("shop:shop_index")
+
+
+def success(request):
+    return render(request, "shop/success.html")
+
 
 def cancel(request):
-    return render(request, 'shop/cancel.html')  # Adjust the template path as needed
+    return render(request, "shop/cancel.html")
+
+# ===========================================================
+# CART SYSTEM (PUBLIC)
+# ===========================================================
+
+@login_required
+def cart_view(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    items = cart.items.all()
+
+    total = sum(item.total_price for item in items)
+
+    return render(request, "shop/cart.html", {
+        "cart": cart,
+        "items": items,
+        "total": total,
+    })
 
 
-# ============================
-# PRODUCT MANAGEMENT
-# ============================
-@staff_required
+@login_required
+def remove_from_cart(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    item.delete()
+    messages.success(request, "Item removed from cart.")
+    return redirect("shop:cart")
+
+
+@login_required
+def update_cart_item(request, item_id):
+    """
+    Updates the quantity of a cart item via POST request.
+    """
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+
+    if request.method == "POST":
+        new_quantity = request.POST.get("quantity")
+        try:
+            new_quantity = int(new_quantity)
+            if new_quantity > 0:
+                item.quantity = new_quantity
+                item.save()
+                messages.success(request, "Cart updated.")
+            else:
+                item.delete()
+                messages.info(request, "Item removed from cart.")
+        except ValueError:
+            messages.error(request, "Invalid quantity.")
+
+    return redirect("shop:cart")
+
+
+@login_required
+def checkout(request):
+    """
+    Placeholder for Stripe Checkout session.
+    You will replace this with stripe.checkout.Session later.
+    """
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    items = cart.items.all()
+
+    if not items:
+        messages.error(request, "Your cart is empty.")
+        return redirect("shop:cart")
+
+    # Stripe integration goes here.
+    return render(request, "shop/checkout.html", {
+        "cart": cart,
+        "items": items,
+        "total": sum(i.total_price for i in items),
+    })
+
+
+
+# ===========================================================
+# MANAGEMENT (ADMIN AREA)
+# ===========================================================
+
+@login_required
 def manage_products(request):
     products = Product.objects.all().order_by('-created_at')
-
-    for p in products:
-        p.featured = p.images.first()  # None if no images
-
-    return render(request, 'shop/manage/products_list.html', {'products': products})
+    return render(request, "shop/manage/manage_products.html", {
+        "products": products
+    })
 
 
-@staff_required
+@login_required
 def add_product(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ProductForm(request.POST)
-
         if form.is_valid():
             product = form.save()
-            messages.success(request, "Product created successfully.")
-            return redirect('shop:edit_product', pk=product.pk)
-
+            messages.success(request, "Product created.")
+            return redirect("shop:edit_product", pk=product.pk)
     else:
         form = ProductForm()
 
-    return render(request, 'shop/manage/product_form.html', {
-        'form': form,
-        'product': None,
-        'images': [],
-        'variants': []
+    return render(request, "shop/manage/add_product.html", {
+        "form": form
     })
 
 
-@staff_required
+@login_required
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ProductForm(request.POST, instance=product)
-
         if form.is_valid():
             form.save()
+            messages.success(request, "Product updated.")
+        return redirect("shop:edit_product", pk=pk)
 
-            action = request.POST.get("save_product")
+    form = ProductForm(instance=product)
+    images = product.images.all()
+    variants = product.variants.all()
 
-            if action == "exit":
-                messages.success(request, "Product saved. Returning to product list.")
-                return redirect('shop:manage_products')
-
-            messages.success(request, "Product updated successfully.")
-            return redirect('shop:edit_product', pk=product.pk)
-
-    else:
-        form = ProductForm(instance=product)
-
-    image_form = MultiImageUploadForm()
-
-    return render(request, 'shop/manage/product_form.html', {
-        'form': form,
-        'product': product,
-        'image_form': image_form,
-        'images': product.images.all(),
-        'variants': product.variants.all()
+    return render(request, "shop/manage/edit_product.html", {
+        "product": product,
+        "form": form,
+        "images": images,
+        "variants": variants,
     })
 
 
-@staff_required
+@login_required
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    title = product.title
     product.delete()
-    messages.success(request, f"Product '{title}' deleted successfully.")
-    return redirect('shop:manage_products')
+    messages.success(request, "Product deleted.")
+    return redirect("shop:manage_products")
 
-# BULK DELETE PRODUCTS
 
-@staff_required
+@login_required
 def bulk_delete(request):
-    if request.method == "POST":
-        ids = request.POST.getlist("selected_products[]")
-
-        if ids:
-            Product.objects.filter(id__in=ids).delete()
-            messages.success(request, f"Deleted {len(ids)} products.")
-        else:
-            messages.error(request, "No products selected.")
-
-    return redirect('shop:manage_products')
+    ids = request.POST.getlist("ids")
+    Product.objects.filter(id__in=ids).delete()
+    messages.success(request, "Products deleted.")
+    return redirect("shop:manage_products")
 
 
-# DUPLICATE PRODUCT
-
-@staff_required
+@login_required
 def duplicate_product(request, pk):
-    original = get_object_or_404(Product, pk=pk)
-
-    # --- 1: Duplicate the product ---------------------------
-    new_product = Product.objects.create(
-        title = original.title + " (Copy)",
-        slug = "",  # force regeneration
-        category = original.category,
-        description = original.description,
-        price = original.price,
-        stock = original.stock,
-        featured = original.featured,
-    )
-
-    # Regenerate slug
-    new_product.save()
-
-    # --- 2: Duplicate variants ------------------------------
-    for variant in original.variants.all():
-        ProductVariant.objects.create(
-            product=new_product,
-            name=variant.name,
-            stock=variant.stock,
-            price_adjust=variant.price_adjust,
-        )
-
-    # --- 3: Duplicate images (with file copy) ----------------
-    from django.core.files.base import ContentFile
-
-    for img in original.images.all():
-        old_file = img.image
-
-        if not old_file:
-            continue
-
-        # Read the existing file
-        old_file.open()
-        file_content = old_file.read()
-        old_file.close()
-
-        # Save new image
-        new_image = ProductImage(product=new_product)
-        new_filename = old_file.name.split("/")[-1]
-
-        new_image.image.save(
-            f"copy_{new_product.id}_{new_filename}",
-            ContentFile(file_content),
-            save=True
-        )
-
-    messages.success(request, f"Product '{original.title}' duplicated.")
-    return redirect('shop:edit_product', pk=new_product.pk)
+    product = get_object_or_404(Product, pk=pk)
+    product.pk = None
+    product.slug = product.slug + "-copy"
+    product.save()
+    messages.success(request, "Product duplicated.")
+    return redirect("shop:edit_product", pk=product.pk)
 
 
+# ===========================================================
+# IMAGE MANAGEMENT
+# ===========================================================
 
-# ============================
-# IMAGE UPLOAD
-# ============================
-@staff_required
+@login_required
 def upload_product_image(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
-    if request.method == "POST":
-        files = request.FILES.getlist("images")
-
-        for f in files:
-            ProductImage.objects.create(product=product, image=f)
-
-        messages.success(request, "Images uploaded successfully.")
-        return redirect('shop:edit_product', pk=product_id)
-
-    return redirect('shop:edit_product', pk=product_id)
+    if request.method == "POST" and request.FILES.getlist("images"):
+        for img in request.FILES.getlist("images"):
+            ProductImage.objects.create(product=product, image=img)
+        messages.success(request, "Images uploaded.")
+    return redirect("shop:edit_product", pk=product_id)
 
 
-@staff_required
+@login_required
 def delete_product_image(request, image_id):
-    image = get_object_or_404(ProductImage, id=image_id)
+    image = get_object_or_404(ProductImage, pk=image_id)
     product_id = image.product.id
     image.delete()
-    messages.success(request, "Image deleted successfully.")
-    return redirect('shop:edit_product', pk=product_id)
+    messages.success(request, "Image deleted.")
+    return redirect("shop:edit_product", pk=product_id)
 
 
-# ============================
+@login_required
+def update_image_order(request):
+    if request.method == "POST":
+        order = request.POST.getlist("order[]")
+
+        for idx, image_id in enumerate(order):
+            ProductImage.objects.filter(id=image_id).update(position=idx)
+
+        return JsonResponse({"status": "success"})
+
+
+# ===========================================================
+# CATEGORY MANAGEMENT
+# ===========================================================
+
+@login_required
+def manage_categories(request):
+    categories = Category.objects.all()
+    return render(request, "shop/manage/manage_categories.html", {"categories": categories})
+
+
+@login_required
+def add_category(request):
+    if request.method == "POST":
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category added.")
+            return redirect("shop:manage_categories")
+    else:
+        form = CategoryForm()
+
+    return render(request, "shop/manage/add_category.html", {"form": form})
+
+
+@login_required
+def edit_category(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+
+    if request.method == "POST":
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category updated.")
+            return redirect("shop:manage_categories")
+    else:
+        form = CategoryForm(instance=category)
+
+    return render(request, "shop/manage/edit_category.html", {
+        "form": form,
+        "category": category
+    })
+
+
+@login_required
+def delete_category(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    messages.success(request, "Category deleted.")
+    return redirect("shop:manage_categories")
+
+# ===========================================================
 # VARIANT MANAGEMENT
-# ============================
-@staff_required
-def add_variant(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
+# ===========================================================
 
-    if request.method == 'POST':
+@login_required
+def add_variant(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+
+    if request.method == "POST":
         form = VariantForm(request.POST)
         if form.is_valid():
             variant = form.save(commit=False)
             variant.product = product
             variant.save()
-            messages.success(request, "Variant added successfully.")
-            return redirect('shop:edit_product', pk=product.id)
+            messages.success(request, "Variant added.")
+            return redirect("shop:edit_product", pk=product_id)
     else:
         form = VariantForm()
 
-    return render(request, 'shop/manage/variant_form.html', {
-        'form': form,
-        'product': product
+    return render(request, "shop/manage/add_variant.html", {
+        "form": form,
+        "product": product,
     })
 
 
-@staff_required
+@login_required
 def edit_variant(request, variant_id):
-    variant = get_object_or_404(ProductVariant, id=variant_id)
+    variant = get_object_or_404(ProductVariant, pk=variant_id)
+    product = variant.product
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = VariantForm(request.POST, instance=variant)
         if form.is_valid():
             form.save()
-            messages.success(request, "Variant updated successfully.")
-            return redirect('shop:edit_product', pk=variant.product.id)
+            messages.success(request, "Variant updated.")
+            return redirect("shop:edit_product", pk=product.id)
     else:
         form = VariantForm(instance=variant)
 
-    return render(request, 'shop/manage/variant_form.html', {
-        'form': form,
-        'variant': variant,
-        'product': variant.product
+    return render(request, "shop/manage/edit_variant.html", {
+        "form": form,
+        "variant": variant,
+        "product": product,
     })
 
 
-@staff_required
+@login_required
 def delete_variant(request, variant_id):
-    variant = get_object_or_404(ProductVariant, id=variant_id)
+    variant = get_object_or_404(ProductVariant, pk=variant_id)
     product_id = variant.product.id
     variant.delete()
-    messages.success(request, "Variant deleted successfully.")
-    return redirect('shop:edit_product', pk=product_id)
-
-
-# ============================
-# CATEGORY MANAGEMENT
-# ============================
-@staff_required
-def manage_categories(request):
-    categories = Category.objects.all().order_by('name')
-    return render(request, 'shop/manage/categories_list.html', {
-        'categories': categories
-    })
-
-
-@staff_required
-def add_category(request):
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Category created successfully.")
-            return redirect('shop:manage_categories')
-    else:
-        form = CategoryForm()
-
-    return render(request, 'shop/manage/category_form.html', {
-        'form': form
-    })
-
-
-@staff_required
-def edit_category(request, pk):
-    category = get_object_or_404(Category, pk=pk)
-
-    if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Category updated successfully.")
-            return redirect('shop:manage_categories')
-    else:
-        form = CategoryForm(instance=category)
-
-    return render(request, 'shop/manage/category_form.html', {
-        'form': form,
-        'category': category
-    })
-
-
-@staff_required
-def delete_category(request, pk):
-    category = get_object_or_404(Category, pk=pk)
-    name = category.name
-    category.delete()
-    messages.success(request, f"Category '{name}' deleted successfully.")
-    return redirect('shop:manage_categories')
-
-
-# ============================
-# IMAGE ORDER UPDATE (AJAX)
-# ============================
-
-
-@staff_required
-def update_image_order(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        order_list = data.get("order", [])
-
-        for item in order_list:
-            img_id = item["id"]
-            position = item["position"]
-
-            try:
-                img = ProductImage.objects.get(id=img_id)
-                img.position = position
-                img.save()
-            except ProductImage.DoesNotExist:
-                continue
-
-        return JsonResponse({"status": "ok"})
-
-    return JsonResponse({"error": "Invalid method"}, status=400)
-
-# frontend product list
-
-def product_list(request):
-    # Fetch products and categories
-    products = Product.objects.all().order_by('-created_at')
-    categories = Category.objects.all()
-    
-    # Category filter
-    category_id = request.GET.get('category')
-    if category_id:
-        products = products.filter(category_id=category_id)
-    
-    # Price filter
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-    if min_price and max_price:
-        products = products.filter(price__gte=min_price, price__lte=max_price)
-    
-    return render(request, 'shop/product_list.html', {
-        'products': products,
-        'categories': categories
-    })
-
-from django.conf import settings
-
-# configure stripe if available
-stripe_api_key = getattr(settings, "STRIPE_SECRET_KEY", None)
-if stripe is not None and stripe_api_key:
-    stripe.api_key = stripe_api_key
-
-def create_checkout_session(request):
-    if stripe is None:
-        messages.error(request, "Stripe library is not installed. Please install the 'stripe' package.")
-        return redirect('shop:product_list')
-
-    # Get cart items, total price
-    cart = Cart.objects.filter(user=request.user).first()
-    if not cart or not hasattr(cart, 'items') or not cart.items.exists():
-        messages.error(request, "Your cart is empty.")
-        return redirect('shop:product_list')
-
-    line_items = []
-    for item in cart.items.all():
-        unit_amount = int(item.product.price * 100)  # Stripe expects the price in cents
-        line_items.append({
-            'price_data': {
-                'currency': 'usd',
-                'product_data': {
-                    'name': item.product.title,
-                },
-                'unit_amount': unit_amount,
-            },
-            'quantity': item.quantity,
-        })
-
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=line_items,
-        mode='payment',
-        success_url=getattr(settings, "STRIPE_SUCCESS_URL", "http://yourdomain.com/success/"),
-        cancel_url=getattr(settings, "STRIPE_CANCEL_URL", "http://yourdomain.com/cancel/"),
-    )
-
-    return redirect(session.url, code=303)
-
-
-def success(request):
-    # Assuming you store the order after a successful Stripe payment
-    order_id = request.GET.get('session_id')  # Stripe session_id or order_id can be passed
-    order = Order.objects.get(id=order_id)  # Retrieve the order from your database
-
-    return render(request, 'shop/success.html', {
-        'order': order,
-    })
-
-def create_checkout_session(request):
-    # Create line items for the Stripe Checkout session (e.g., cart items)
-    line_items = [
-        {
-            'price_data': {
-                'currency': 'usd',
-                'product_data': {
-                    'name': 'T-shirt',
-                },
-                'unit_amount': 2000,  # Price in cents
-            },
-            'quantity': 1,
-        },
-    ]
-
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=line_items,
-        mode='payment',
-        success_url=request.build_absolute_uri('/thank-you/?session_id={CHECKOUT_SESSION_ID}'),  # Include session ID
-        cancel_url=request.build_absolute_uri('/cancel/'),  # URL to redirect if canceled
-    )
-
-    return redirect(session.url, code=303)
+    messages.success(request, "Variant deleted.")
+    return redirect("shop:edit_product", pk=product_id)

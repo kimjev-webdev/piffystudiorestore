@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+
+    <h1 class="fw-bold mb-4">Your Cart</h1>
+
+    {% if items %}
+    <table class="table align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Product</th>
+                <th style="width:120px">Quantity</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product.title }}</td>
+
+                <td>
+                    <form method="POST" action="{% url 'shop:update_cart_item' item.id %}">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                               class="form-control form-control-sm"
+                               onchange="this.form.submit()">
+                    </form>
+                </td>
+
+                <td>£{{ item.total_price }}</td>
+
+                <td>
+                    <a href="{% url 'shop:remove_from_cart' item.id %}"
+                       class="btn btn-outline-danger btn-sm">
+                        Remove
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 class="mt-4">Total: £{{ total }}</h3>
+
+    <a href="{% url 'shop:checkout' %}" class="btn btn-dark btn-lg mt-3">
+        Proceed to Checkout
+    </a>
+
+    {% else %}
+        <p class="text-muted">Your cart is empty.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
