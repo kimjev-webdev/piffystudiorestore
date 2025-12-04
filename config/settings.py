@@ -14,10 +14,11 @@ load_dotenv(BASE_DIR / '.env')
 # Retrieve the secret key from .env for safety
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or 'unsafe-default-for-dev'
 
-# Debug mode - Don't leave True in production
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
 
 # -------------------------------
 # STRIPE CONFIGURATION
@@ -32,6 +33,7 @@ STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL')  # URL after canceled payment
 # APPLICATIONS
 # -------------------------------
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +57,7 @@ INSTALLED_APPS = [
 # -------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -125,6 +128,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"   # Used later for deployment
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"

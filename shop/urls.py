@@ -41,7 +41,7 @@ urlpatterns = [
 # PUBLIC SHOP FRONT
 # ============================
 
-    path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
+path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
 
 
 # Shop index / product list
