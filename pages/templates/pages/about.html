@@ -1,2 +1,36 @@
 {% extends "base.html" %}
+{% load static %}
+
+
 {% block content %}
+<div class="container aboutcontainer py-5">
+  <div class="row align-items-center gy-4">
+    <!-- Photo (left on md+, stacked on phones) -->
+    <div class="col-12 col-md-6 px-4">
+      <img src="{% static 'img/profike.jpg' %}" alt="Portrait" class="img-fluid profilepic rounded shadow-sm">
+    </div>
+
+    <!-- Intro + CV button (right on md+, stacked on phones) -->
+    <div class="col-12 col-md-6 px-4 d-flex flex-column justify-content-center align-items-center">
+      <p class="mb-4 abouttext">
+        I work with a vivid palette, light-responsive materials, and layered media, creating work that ranges from conceptual fine art and immersive installations to interactive web design.
+      </p>
+      <a class="aboutlink" href="{% static 'files/CV.pdf' %}" target="_blank" rel="noopener">C.V</a>
+    </div>
+  </div>
+
+  <!-- Second row: two buttons side-by-side on md+, stacked on phones -->
+  <div class="row mt-5 gy-3">
+    <div class="col-12 col-md-4 d-flex justify-content-center align-items-center">
+      <a class="aboutlink" href="{% url 'portfolio:art' %}">Art</a>
+    </div>
+    <div class="col-12 col-md-4 d-flex justify-content-center align-items-center">
+      <a class="aboutlink" href="{% url 'portfolio:installations' %}">Installations</a>
+    </div>
+    <!-- Third row: n -->
+    <div class="col-12 col-md-4 mt-3 d-flex justify-content-center align-items-center">
+      <a class="aboutlink" href="{% url 'portfolio:digital' %}">Digital</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

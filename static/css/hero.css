@@ -41,9 +41,6 @@
 .carousel-item {
     padding-bottom: 4rem;
 }
-
-
-
 /* ------------------------------------
    CAPTIONS (ALL SLIDES)
 ------------------------------------ */
@@ -156,4 +153,95 @@
     .diptych-img {
         width: 100%;
     }
+}
+
+/* Ensure slides size to viewport minus navbar so content sits directly under nav */
+:root {
+  /* adjust to match your actual navbar height (desktop) */
+  --nav-height-desktop: 72px;
+  /* mobile/tablet navbar height */
+  --nav-height-mobile: 56px;
+}
+
+/* default -- use desktop value */
+:root { --nav-height: var(--nav-height-desktop); }
+
+/* use mobile value on smaller viewports */
+@media (max-width: 991.98px) {
+  :root { --nav-height: var(--nav-height-mobile); }
+}
+
+/* Make carousel items fill available viewport space under the navbar */
+#hero-carousel .carousel-item.vh-100,
+#hero-carousel .carousel-item {
+  min-height: calc(100vh - var(--nav-height)) !important;
+  height: auto !important; /* avoid fixed vh stacking issues */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* container inside slide should not force extra height */
+#hero-carousel .container-fluid {
+  height: auto;
+  max-height: calc(100vh - var(--nav-height)) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+/* hero-stack sizing — keep animation but constrain visuals */
+.hero-stack {
+  width: min(1100px, 94vw);
+  max-width: 100%;
+  max-height: calc(100vh - var(--nav-height) - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* each hero layer should scale responsively and never overflow viewport */
+.hero-stack .hero-layer {
+  max-width: 100%;
+  max-height: calc(100vh - var(--nav-height) - 120px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* diptych / single-image slides */
+.diptych-img,
+img.diptych-img,
+img.communion {
+  max-height: calc(100vh - var(--nav-height) - 120px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* caption sits inside the slide but won't push layout */
+.hero-caption {
+  position: absolute;
+  left: 1rem;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  margin: 0;
+  padding: .35rem .75rem;
+  white-space: nowrap;
+  z-index: 30;
+}
+
+/* small screens: reduce vertical spacing allowances */
+@media (max-width: 575.98px) {
+  .hero-stack { max-height: calc(100vh - var(--nav-height) - 48px); }
+  .hero-stack .hero-layer { max-height: calc(100vh - var(--nav-height) - 68px); }
+  .hero-caption { font-size: 0.9rem; left: .5rem; padding: .25rem .5rem; }
 }

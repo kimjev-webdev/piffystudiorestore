@@ -19,6 +19,35 @@
 }
 
 
+/* ---------- MOVED KEYFRAMES (placed near the top of the file) ---------- */
+/* main wobble (desktop) */
+@keyframes navWobble {
+    0%   { transform: translate3d(-1px,-1px,0) rotate(-0.35deg) scale(1); }
+    25%  { transform: translate3d( 2px,-2px,0) rotate( 0.55deg) scale(1.003); }
+    50%  { transform: translate3d(-2px, 2px,0) rotate(-0.45deg) scale(1); }
+    75%  { transform: translate3d( 1px, 2px,0) rotate( 0.45deg) scale(1.002); }
+    100% { transform: translate3d(-1px,-1px,0) rotate(-0.35deg) scale(1); }
+}
+
+/* subtler submenu wobble */
+@keyframes navWobbleSub {
+    0%   { transform: translate3d(-0.4px,-0.4px,0) rotate(-0.12deg) scale(1); }
+    25%  { transform: translate3d( 0.8px,-0.8px,0) rotate( 0.18deg) scale(1.001); }
+    50%  { transform: translate3d(-0.8px, 0.8px,0) rotate(-0.16deg) scale(1); }
+    75%  { transform: translate3d( 0.4px, 0.8px,0) rotate( 0.16deg) scale(1.0005); }
+    100% { transform: translate3d(-0.4px,-0.4px,0) rotate(-0.12deg) scale(1); }
+}
+
+/* stronger wobble for touch devices */
+@keyframes navWobbleTouch {
+    0%   { transform: translate3d(-3px,-3px,0) rotate(-0.6deg) scale(1); }
+    25%  { transform: translate3d( 5px,-4px,0) rotate( 0.9deg) scale(1.004); }
+    50%  { transform: translate3d(-5px, 5px,0) rotate(-0.9deg) scale(1); }
+    75%  { transform: translate3d( 3px, 4px,0) rotate( 0.7deg) scale(1.003); }
+    100% { transform: translate3d(-3px,-3px,0) rotate(-0.6deg) scale(1); }
+}
+/* ---------- end keyframes ---------- */
+
 /* ------------------------------------
    GLOBAL SMOOTHING
 ------------------------------------ */
@@ -62,8 +91,9 @@ body {
 }   
 
 /* Nav typography: use the imported League Spartan for menu/headers, fallback to Wakaba */
-.navbar, #navbar, .navbar-nav, .nav-link  {
+.navbar, #navbar, .navbar-nav, .nav-link, .aboutlink {
     font-family: 'wakaba', sans-serif;
+    text-decoration: none;
     text-transform: lowercase;
     letter-spacing: 3px;
     font-size: 2rem;
@@ -78,7 +108,7 @@ body {
     padding: 0 10px !important;
 }
 
-.nav-link:hover, .nav-link:focus {
+.nav-link:hover, .nav-link:focus, .aboutlink:hover, .aboutlink:focus {
     color: var(--orange);
     text-transform: uppercase;
 }
@@ -93,16 +123,8 @@ body {
 
 /* wobble / breathe animation for top-level nav links (subtle, 2D motion) */
 @media (hover: hover) and (pointer: fine) {
-    @keyframes navWobble {
-        0%   { transform: translate3d(-1px,-1px,0) rotate(-0.35deg) scale(1); }
-        25%  { transform: translate3d( 2px,-2px,0) rotate( 0.55deg) scale(1.003); }
-        50%  { transform: translate3d(-2px, 2px,0) rotate(-0.45deg) scale(1); }
-        75%  { transform: translate3d( 1px, 2px,0) rotate( 0.45deg) scale(1.002); }
-        100% { transform: translate3d(-1px,-1px,0) rotate(-0.35deg) scale(1); }
-    }
-
     /* apply wobble to all top-level nav links immediately (no .show dependency) */
-    .navbar-nav > li > .nav-link {
+    .navbar-nav > li > .nav-link, .aboutlink {
         animation-name: navWobble;
         animation-duration: 3.8s;
         animation-timing-function: ease-in-out;
@@ -123,17 +145,9 @@ body {
 }
 /* stronger wobble on touch / small-screen devices (pointer: coarse) */
 @media (hover: none), (pointer: coarse) {
-    @keyframes navWobbleTouch {
-        0%   { transform: translate3d(-3px,-3px,0) rotate(-0.6deg) scale(1); }
-        25%  { transform: translate3d( 5px,-4px,0) rotate( 0.9deg) scale(1.004); }
-        50%  { transform: translate3d(-5px, 5px,0) rotate(-0.9deg) scale(1); }
-        75%  { transform: translate3d( 3px, 4px,0) rotate( 0.7deg) scale(1.003); }
-        100% { transform: translate3d(-3px,-3px,0) rotate(-0.6deg) scale(1); }
-    }
-
-    .navbar-nav > li > .nav-link {
+    .navbar-nav > li > .nav-link, .aboutlink {
         animation-name: navWobbleTouch !important;
-        animation-duration: 3.4s !important;
+        animation-duration: 3.8s !important;
         animation-timing-function: ease-in-out !important;
         animation-iteration-count: infinite !important;
         animation-direction: alternate !important;
@@ -215,3 +229,93 @@ img, svg, video {
     max-width: 100%;
     height: auto;
 }
+
+/* ---------- MOVED MEDIA QUERIES (place all @media rules here at the end of the file) ---------- */
+
+/* keep navbar horizontal on small screens and ensure collapsed area is visible */
+@media (max-width: 991.98px) {
+  #navbar .navbar-collapse.collapse {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  #navbar .navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #navbar .navbar-nav .nav-item {
+    display: inline-flex;
+  }
+
+  #navbar .navbar-nav .dropdown-menu {
+    position: absolute;
+    left: 0;
+  }
+}
+
+/* touch-specific larger wobble so motion is noticeable on small screens */
+@media (hover: none), (pointer: coarse) {
+    .navbar-nav > li > .nav-link {
+        animation-name: navWobbleTouch !important;
+        animation-duration: 3.4s !important;
+        animation-timing-function: ease-in-out !important;
+        animation-iteration-count: infinite !important;
+        animation-direction: alternate !important;
+        will-change: transform;
+        transform-origin: center center;
+    }
+
+    .navbar-nav > li:nth-child(1) > .nav-link { animation-delay: 0s !important; }
+    .navbar-nav > li:nth-child(2) > .nav-link { animation-delay: 0.08s !important; }
+    .navbar-nav > li:nth-child(3) > .nav-link { animation-delay: 0.16s !important; }
+    .navbar-nav > li:nth-child(4) > .nav-link { animation-delay: 0.24s !important; }
+}
+
+/* keep original desktop wobble variations (apply generally but kept in media area for clarity) */
+@media (hover: hover) and (pointer: fine) {
+    .navbar-nav > li > .nav-link {
+        animation-name: navWobble;
+        animation-duration: 3.8s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        will-change: transform;
+        transform-origin: center center;
+    }
+
+    .navbar-nav > li:nth-child(1) > .nav-link { animation-duration: 3.6s;  animation-delay: 0s;  }
+    .navbar-nav > li:nth-child(2) > .nav-link { animation-duration: 3.9s;  animation-delay: 0.12s; }
+    .navbar-nav > li:nth-child(3) > .nav-link { animation-duration: 4.1s;  animation-delay: 0.24s; }
+    .navbar-nav > li:nth-child(4) > .nav-link { animation-duration: 3.75s; animation-delay: 0.06s; }
+
+    .navbar-nav .dropdown-item {
+        animation-name: navWobbleSub;
+        animation-duration: 4.2s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        will-change: transform;
+        transform-origin: center center;
+    }
+}
+
+@media (min-width: 768px) {
+    .aboutcontainer {
+        height: 80vh;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+    }
+}
+
+.abouttext
+{ text-transform: justify;}
