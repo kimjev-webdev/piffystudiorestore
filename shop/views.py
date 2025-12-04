@@ -2,6 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.urls import reverse
+import stripe
+
+from config import settings
 
 from .models import Product, ProductImage, Category, ProductVariant, Cart, CartItem
 from .forms import ProductForm, CategoryForm, VariantForm
@@ -48,7 +52,7 @@ def add_to_cart(request, product_id):
     )
 
     messages.success(request, f"{product.title} added to cart.")
-    return redirect("shop:shop_index")
+    return redirect("shop:cart")
 
 
 def success(request):
@@ -58,6 +62,7 @@ def success(request):
 def cancel(request):
     return render(request, "shop/cancel.html")
 
+
 # ===========================================================
 # CART SYSTEM (PUBLIC)
 # ===========================================================
@@ -66,7 +71,6 @@ def cancel(request):
 def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     items = cart.items.all()
-
     total = sum(item.total_price for item in items)
 
     return render(request, "shop/cart.html", {
@@ -86,9 +90,6 @@ def remove_from_cart(request, item_id):
 
 @login_required
 def update_cart_item(request, item_id):
-    """
-    Updates the quantity of a cart item via POST request.
-    """
     item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
 
     if request.method == "POST":
@@ -110,10 +111,6 @@ def update_cart_item(request, item_id):
 
 @login_required
 def checkout(request):
-    """
-    Placeholder for Stripe Checkout session.
-    You will replace this with stripe.checkout.Session later.
-    """
     cart, created = Cart.objects.get_or_create(user=request.user)
     items = cart.items.all()
 
@@ -121,13 +118,61 @@ def checkout(request):
         messages.error(request, "Your cart is empty.")
         return redirect("shop:cart")
 
-    # Stripe integration goes here.
+    total_price = sum(i.total_price for i in items)
+
     return render(request, "shop/checkout.html", {
         "cart": cart,
-        "items": items,
-        "total": sum(i.total_price for i in items),
+        "cart_items": items,
+        "total_price": total_price,
     })
 
+
+# ===========================================================
+# STRIPE CHECKOUT SESSION
+# ===========================================================
+
+@login_required
+def create_checkout_session(request):
+    print("🔥 VIEW HIT:", request.method, request.POST)
+    if request.method != "POST":
+        return redirect("shop:checkout")
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    items = cart.items.all()
+
+    if not items:
+        messages.error(request, "Your cart is empty.")
+        return redirect("shop:cart")
+
+    line_items = []
+    for item in items:
+        line_items.append({
+            "price_data": {
+                "currency": "gbp",
+                "product_data": {
+                    "name": item.product.title,
+                },
+                "unit_amount": int(item.product.price * 100),
+            },
+            "quantity": item.quantity,
+        })
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=line_items,
+            success_url=request.build_absolute_uri(reverse("shop:success")),
+            cancel_url=request.build_absolute_uri(reverse("shop:cancel")),
+        )
+
+        return redirect(session.url)
+
+    except Exception as e:
+        messages.error(request, f"Stripe error: {e}")
+        return redirect("shop:checkout")
 
 
 # ===========================================================
@@ -235,10 +280,8 @@ def delete_product_image(request, image_id):
 def update_image_order(request):
     if request.method == "POST":
         order = request.POST.getlist("order[]")
-
         for idx, image_id in enumerate(order):
             ProductImage.objects.filter(id=image_id).update(position=idx)
-
         return JsonResponse({"status": "success"})
 
 
@@ -291,6 +334,7 @@ def delete_category(request, pk):
     category.delete()
     messages.success(request, "Category deleted.")
     return redirect("shop:manage_categories")
+
 
 # ===========================================================
 # VARIANT MANAGEMENT
