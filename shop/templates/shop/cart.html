@@ -46,9 +46,13 @@
 
     <h3 class="mt-4">Total: £{{ total }}</h3>
 
-    <a href="{% url 'shop:checkout' %}" class="btn btn-dark btn-lg mt-3">
-        Proceed to Checkout
-    </a>
+  <form action="{% url 'shop:create_checkout_session' %}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-dark btn-lg mt-4">
+        Checkout with Stripe
+    </button>
+</form>
+
 
     {% else %}
         <p class="text-muted">Your cart is empty.</p>

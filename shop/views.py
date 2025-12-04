@@ -45,22 +45,34 @@ def add_to_cart(request, product_id):
 
     cart, created = Cart.objects.get_or_create(user=request.user)
 
-    CartItem.objects.create(
+    # Check if this product already exists in the cart
+    existing_item = CartItem.objects.filter(
         cart=cart,
-        product=product,
-        quantity=1
-    )
+        product=product
+    ).first()
 
-    messages.success(request, f"{product.title} added to cart.")
+    if existing_item:
+        # Increase quantity instead of duplicating item
+        existing_item.quantity += 1
+        existing_item.save()
+        messages.success(request, f"Updated {product.title} quantity.")
+    else:
+        # Create new item
+        CartItem.objects.create(
+            cart=cart,
+            product=product,
+            quantity=1
+        )
+        messages.success(request, f"{product.title} added to cart.")
+
     return redirect("shop:cart")
-
 
 def success(request):
     return render(request, "shop/success.html")
 
-
 def cancel(request):
     return render(request, "shop/cancel.html")
+
 
 
 # ===========================================================
@@ -109,33 +121,18 @@ def update_cart_item(request, item_id):
     return redirect("shop:cart")
 
 
-@login_required
-def checkout(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    items = cart.items.all()
-
-    if not items:
-        messages.error(request, "Your cart is empty.")
-        return redirect("shop:cart")
-
-    total_price = sum(i.total_price for i in items)
-
-    return render(request, "shop/checkout.html", {
-        "cart": cart,
-        "cart_items": items,
-        "total_price": total_price,
-    })
-
-
 # ===========================================================
 # STRIPE CHECKOUT SESSION
+# (Cart → Stripe Checkout directly, no intermediate page)
 # ===========================================================
 
 @login_required
 def create_checkout_session(request):
     print("🔥 VIEW HIT:", request.method, request.POST)
+
+    # STEP 4: if not POST, go back to CART (checkout view removed)
     if request.method != "POST":
-        return redirect("shop:checkout")
+        return redirect("shop:cart")
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -168,11 +165,13 @@ def create_checkout_session(request):
             cancel_url=request.build_absolute_uri(reverse("shop:cancel")),
         )
 
+        # Go straight to Stripe-hosted checkout page
         return redirect(session.url)
 
     except Exception as e:
         messages.error(request, f"Stripe error: {e}")
-        return redirect("shop:checkout")
+        # STEP 4 again: on error, go back to CART
+        return redirect("shop:cart")
 
 
 # ===========================================================
