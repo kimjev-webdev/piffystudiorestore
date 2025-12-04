@@ -168,7 +168,6 @@ def create_checkout_session(request):
             payment_method_types=["card"],
             mode="payment",
             line_items=line_items,
-
             customer_email=request.user.email,
             billing_address_collection="required",
             shipping_address_collection={
@@ -177,7 +176,6 @@ def create_checkout_session(request):
             metadata={
                 "user_id": request.user.id,
             },
-
             success_url=request.build_absolute_uri(reverse("shop:success")),
             cancel_url=request.build_absolute_uri(reverse("shop:cancel")),
         )
@@ -410,7 +408,7 @@ def delete_variant(request, variant_id):
 
 
 # ===========================================================
-# STRIPE WEBHOOK – CREATES ORDERS AFTER PAYMENT
+# STRIPE WEBHOOK – FIXED + CLEANED
 # ===========================================================
 
 @csrf_exempt
@@ -421,7 +419,7 @@ def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
 
-    if endpoint_secret is None:
+    if not endpoint_secret:
         return HttpResponse(status=200)
 
     try:
@@ -436,32 +434,33 @@ def stripe_webhook(request):
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
 
+        # User from metadata
         User = get_user_model()
         user = None
         user_id = session.get("metadata", {}).get("user_id")
-
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                user = None
+                pass
 
         if not user:
             return HttpResponse(status=200)
 
-        amount_total = session.get("amount_total") or 0
-        total_price = amount_total / 100
-
+        # Pricing + customer info
+        total_price = (session.get("amount_total") or 0) / 100
         customer_details = session.get("customer_details") or {}
         shipping_details = session.get("shipping_details") or {}
         address = shipping_details.get("address") or {}
 
+        # Create order
         order = Order.objects.create(
             user=user,
             email=customer_details.get("email"),
             total_price=total_price,
             stripe_session_id=session.get("id"),
             stripe_payment_intent=session.get("payment_intent"),
+
             shipping_name=shipping_details.get("name") or customer_details.get("name"),
             shipping_address1=address.get("line1"),
             shipping_address2=address.get("line2"),
@@ -470,27 +469,26 @@ def stripe_webhook(request):
             shipping_country=address.get("country"),
         )
 
+        # Stripe line items
         line_items = stripe.checkout.Session.list_line_items(session["id"])
 
         for li in line_items["data"]:
-            product_name = li.get("description")
-            quantity = li.get("quantity", 1)
-
-            product = Product.objects.filter(title=product_name).first()
+            product = Product.objects.filter(title=li.get("description")).first()
             if product:
                 OrderItem.objects.create(
                     order=order,
                     product=product,
-                    quantity=quantity,
+                    quantity=li.get("quantity", 1),
                 )
 
+        # Clear cart
         Cart.objects.filter(user=user).delete()
 
     return HttpResponse(status=200)
 
 
 # ===========================================================
-# ORDER MANAGEMENT (ADMIN AREA)
+# ORDER MANAGEMENT
 # ===========================================================
 
 @login_required

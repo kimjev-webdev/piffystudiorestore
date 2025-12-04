@@ -9,10 +9,8 @@
     <p><strong>Order Number:</strong> {{ order.id }}</p>
     
 <p>Your order has been received! You will receive an email confirmation shortly.</p>
-<a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
 
- <h3>Order Details:</h3>
-    <ul>
+ <ul>
       {% for item in order.items.all %}
         <li>
           <strong>{{ item.product.title }}</strong> - 
@@ -20,12 +18,8 @@
         </li>
       {% endfor %}
     </ul>
-    
-    <p><strong>Total Amount:</strong> £{{ order.total_price }}</p>
+<a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
 
-
-  <a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
-    
   </div>
 {% endblock %}
 
