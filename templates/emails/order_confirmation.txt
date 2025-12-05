@@ -1,0 +1,18 @@
+Thank you for your order!
+
+Order Number: {{ order.id }}
+Total Paid: £{{ order.total_price }}
+
+Items:
+{% for item in items %}
+- {{ item.product.title }} × {{ item.quantity }}
+{% endfor %}
+
+Shipping To:
+{{ order.shipping_name }}
+{{ order.shipping_address1 }}
+{% if order.shipping_address2 %}{{ order.shipping_address2 }}{% endif %}
+{{ order.shipping_city }} {{ order.shipping_postcode }}
+{{ order.shipping_country }}
+
+We’ll email you again when your order ships.

@@ -5,6 +5,8 @@ from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import stripe
 
 from config import settings
@@ -28,9 +30,7 @@ from .models import (
 
 def product_list(request):
     products = Product.objects.all().order_by('-created_at')
-    return render(request, "shop/product_list.html", {
-        "products": products,
-    })
+    return render(request, "shop/product_list.html", {"products": products})
 
 
 def product_detail(request, slug):
@@ -75,6 +75,7 @@ def add_to_cart(request, product_id):
 
     return redirect("shop:cart")
 
+
 def success(request):
     session_id = request.GET.get("session_id")
     order = None
@@ -82,10 +83,7 @@ def success(request):
     if session_id:
         order = Order.objects.filter(stripe_session_id=session_id).first()
 
-    return render(request, "shop/success.html", {
-        "order": order
-    })
-
+    return render(request, "shop/success.html", {"order": order})
 
 
 def cancel(request):
@@ -93,7 +91,7 @@ def cancel(request):
 
 
 # ===========================================================
-# CART SYSTEM (PUBLIC)
+# CART SYSTEM
 # ===========================================================
 
 @login_required
@@ -142,10 +140,7 @@ def update_cart_item(request, item_id):
 # STRIPE CHECKOUT SESSION
 # ===========================================================
 
-@login_required
 def create_checkout_session(request):
-    print("🔥 VIEW HIT:", request.method, request.POST)
-
     if request.method != "POST":
         return redirect("shop:cart")
 
@@ -163,9 +158,7 @@ def create_checkout_session(request):
         line_items.append({
             "price_data": {
                 "currency": "gbp",
-                "product_data": {
-                    "name": item.product.title,
-                },
+                "product_data": {"name": item.product.title},
                 "unit_amount": int(item.product.price * 100),
             },
             "quantity": item.quantity,
@@ -178,15 +171,11 @@ def create_checkout_session(request):
             line_items=line_items,
             customer_email=request.user.email,
             billing_address_collection="required",
-            shipping_address_collection={
-                "allowed_countries": ["GB"],
-            },
-            metadata={
-                "user_id": request.user.id,
-            },
+            shipping_address_collection={"allowed_countries": ["GB"]},
+            metadata={"user_id": request.user.id},
             success_url=request.build_absolute_uri(
-    reverse("shop:success")
-) + "?session_id={CHECKOUT_SESSION_ID}",
+                reverse("shop:success")
+            ) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri(reverse("shop:cancel")),
         )
 
@@ -204,9 +193,7 @@ def create_checkout_session(request):
 @login_required
 def manage_products(request):
     products = Product.objects.all().order_by('-created_at')
-    return render(request, "shop/manage/products_list.html", {
-        "products": products
-    })
+    return render(request, "shop/manage/products_list.html", {"products": products})
 
 
 @login_required
@@ -220,9 +207,7 @@ def add_product(request):
     else:
         form = ProductForm()
 
-    return render(request, "shop/manage/product_form.html", {
-        "form": form
-    })
+    return render(request, "shop/manage/product_form.html", {"form": form})
 
 
 @login_required
@@ -314,9 +299,7 @@ def update_image_order(request):
 @login_required
 def manage_categories(request):
     categories = Category.objects.all()
-    return render(request, "shop/manage/categories_list.html", {
-        "categories": categories
-    })
+    return render(request, "shop/manage/categories_list.html", {"categories": categories})
 
 
 @login_required
@@ -330,9 +313,7 @@ def add_category(request):
     else:
         form = CategoryForm()
 
-    return render(request, "shop/manage/category_form.html", {
-        "form": form
-    })
+    return render(request, "shop/manage/category_form.html", {"form": form})
 
 
 @login_required
@@ -448,19 +429,18 @@ def stripe_webhook(request):
         User = get_user_model()
         user = None
         user_id = session.get("metadata", {}).get("user_id")
+
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                pass
-
-        if not user:
-            return HttpResponse(status=200)
+                user = None
 
         # Pricing + customer info
         total_price = (session.get("amount_total") or 0) / 100
         customer_details = session.get("customer_details") or {}
-        shipping_details = session.get("shipping_details") or {}
+        collected_info = session.get("collected_information", {}) or {}
+        shipping_details = collected_info.get("shipping_details") or {}
         address = shipping_details.get("address") or {}
 
         # Create order
@@ -479,9 +459,8 @@ def stripe_webhook(request):
             shipping_country=address.get("country"),
         )
 
-        # Stripe line items
+        # Create order items
         line_items = stripe.checkout.Session.list_line_items(session["id"])
-
         for li in line_items["data"]:
             product = Product.objects.filter(title=li.get("description")).first()
             if product:
@@ -491,8 +470,24 @@ def stripe_webhook(request):
                     quantity=li.get("quantity", 1),
                 )
 
+        # SEND CONFIRMATION EMAIL
+        if order.email:
+            subject = "Your Piffy Studio Order Confirmation"
+            message = render_to_string("emails/order_confirmation.txt", {
+                "order": order,
+                "items": order.items.all(),
+            })
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+                fail_silently=True,
+            )
+
         # Clear cart
-        Cart.objects.filter(user=user).delete()
+        if user:
+            Cart.objects.filter(user=user).delete()
 
     return HttpResponse(status=200)
 
@@ -504,9 +499,7 @@ def stripe_webhook(request):
 @login_required
 def manage_orders(request):
     orders = Order.objects.all().order_by("-created_at")
-    return render(request, "shop/manage/orders_list.html", {
-        "orders": orders
-    })
+    return render(request, "shop/manage/orders_list.html", {"orders": orders})
 
 
 @login_required
@@ -521,6 +514,4 @@ def order_detail(request, order_id):
             messages.success(request, "Order status updated.")
             return redirect("shop:order_detail", order_id=order.id)
 
-    return render(request, "shop/manage/order_detail.html", {
-        "order": order,
-    })
+    return render(request, "shop/manage/order_detail.html", {"order": order})

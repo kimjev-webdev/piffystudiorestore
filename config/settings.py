@@ -107,6 +107,18 @@ DATABASES = {
 }
 
 # -------------------------------
+# EMAIL CONFIGURATION (Gmail SMTP)
+# -------------------------------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "YOUR_GMAIL_ADDRESS"
+EMAIL_HOST_PASSWORD = "YOUR_APP_PASSWORD"
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+# -------------------------------
 # PASSWORD VALIDATION
 # -------------------------------
 AUTH_PASSWORD_VALIDATORS = [
@@ -152,3 +164,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # -------------------------------
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
