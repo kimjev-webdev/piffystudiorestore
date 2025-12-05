@@ -6,21 +6,38 @@
     
     <h2>Payment Successful</h2>
 
-    <p><strong>Order Number:</strong> {{ order.id }}</p>
-    
-<p>Your order has been received! You will receive an email confirmation shortly.</p>
+    {% if order %}
+        <p><strong>Order Number:</strong> {{ order.id }}</p>
 
- <ul>
-      {% for item in order.items.all %}
-        <li>
-          <strong>{{ item.product.title }}</strong> - 
-          {{ item.quantity }} x £{{ item.product.price }}
-        </li>
-      {% endfor %}
-    </ul>
-<a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
+        <p>Your order has been received! A confirmation email will be sent to {{ order.email }} shortly.</p>
 
+        <h3>Items</h3>
+        <ul>
+            {% for item in order.items.all %}
+                <li>
+                    <strong>{{ item.product.title }}</strong> – 
+                    {{ item.quantity }} × £{{ item.product.price }}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h3>Total:</h3>
+        <p>£{{ order.total_price }}</p>
+
+        <h3>Shipping To:</h3>
+        <p>
+            {{ order.shipping_name }}<br>
+            {{ order.shipping_address1 }}<br>
+            {% if order.shipping_address2 %}{{ order.shipping_address2 }}<br>{% endif %}
+            {{ order.shipping_city }} {{ order.shipping_postcode }}<br>
+            {{ order.shipping_country }}
+        </p>
+
+    {% else %}
+        <p>Your payment was successful, but we could not locate your order.</p>
+        <p>If this happens again, please contact support.</p>
+    {% endif %}
+
+    <a href="{% url 'shop:shop_index' %}">Continue Shopping</a>
   </div>
 {% endblock %}
-
-

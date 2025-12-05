@@ -75,9 +75,17 @@ def add_to_cart(request, product_id):
 
     return redirect("shop:cart")
 
-
 def success(request):
-    return render(request, "shop/success.html")
+    session_id = request.GET.get("session_id")
+    order = None
+
+    if session_id:
+        order = Order.objects.filter(stripe_session_id=session_id).first()
+
+    return render(request, "shop/success.html", {
+        "order": order
+    })
+
 
 
 def cancel(request):
@@ -176,7 +184,9 @@ def create_checkout_session(request):
             metadata={
                 "user_id": request.user.id,
             },
-            success_url=request.build_absolute_uri(reverse("shop:success")),
+            success_url=request.build_absolute_uri(
+    reverse("shop:success")
+) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri(reverse("shop:cancel")),
         )
 
